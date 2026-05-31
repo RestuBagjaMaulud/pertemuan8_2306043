@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'models/photo_model.dart';
-import 'services/photo_service.dart';
+import 'package:pertemuan8_1/providers/photo_provider.dart';
+import 'package:provider/provider.dart';
 
 class PhotoPage extends StatefulWidget {
   @override
@@ -8,16 +8,18 @@ class PhotoPage extends StatefulWidget {
 }
 
 class _PhotoPageState extends State<PhotoPage> {
-  late Future<List<PhotoModel>> futurePhotos;
 
   @override
   void initState() {
     super.initState();
-    futurePhotos = PhotoService.getPhotos();
+    Future.microtask(() {
+      context.read<PhotoProvider>().fetchPhotos();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<PhotoProvider>();
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -29,17 +31,22 @@ class _PhotoPageState extends State<PhotoPage> {
           ),
         ),
         backgroundColor: Colors.lightBlue,
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: false
       ),
-      body: FutureBuilder<List<PhotoModel>>(
-        future: futurePhotos,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            final photos = snapshot.data!;
-            return ListView.builder(
-              itemCount: photos.length,
+      body: Builder(
+        builder: (context) {
+          if (provider.isLoading) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          if (provider.errorMessage.isNotEmpty) {
+            return Center(child: Text('provider.errorMessage'),);
+          }
+
+        return ListView.builder(
+              itemCount: provider.photos.length,
               itemBuilder: (context, index) {
-                final photo = photos[index];
+                final photo = provider.photos[index];
                 return Card(
                   margin: const EdgeInsets.all(10),
                   child: ListTile(
@@ -50,11 +57,6 @@ class _PhotoPageState extends State<PhotoPage> {
                 );
               },
             );
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else {
-            return Center(child: CircularProgressIndicator());
-          }
         },
       ),
       floatingActionButton: Row(

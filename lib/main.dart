@@ -1,9 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:pertemuan8_1/providers/post_provider.dart';
+import 'package:pertemuan8_1/providers/photo_provider.dart';
+import 'package:provider/provider.dart';
 import 'post.dart';
 import 'photos.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => PostProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => PhotoProvider(),
+        ),
+      ],
+      child: const MyApp()
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
